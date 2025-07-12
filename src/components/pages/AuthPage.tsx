@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,7 +27,7 @@ interface Alert {
 
 export function AuthPage() {
   const router = useRouter();
-  const { login, register } = useAuth();
+  const { login, register, user, isStorageLoaded } = useAuth();
   
   const [activeTab, setActiveTab] = useState<'signin' | 'signup' | 'forgot' | 'verify'>('signin');
   const [showPassword, setShowPassword] = useState(false);
@@ -43,6 +43,13 @@ export function AuthPage() {
   });
 
   const [verificationCode, setVerificationCode] = useState('');
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (isStorageLoaded && user) {
+      router.push('/dashboard');
+    }
+  }, [user, router, isStorageLoaded]);
 
   const updateFormData = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -81,7 +88,8 @@ export function AuthPage() {
     try {
       await login(formData.email, formData.password);
       showAlert('success', 'Connexion réussie !');
-      setTimeout(() => router.push('/dashboard'), 1000);
+      // Immediate redirect after successful login
+      router.push('/dashboard');
     } catch (error) {
       showAlert('error', error instanceof Error ? error.message : 'Erreur de connexion');
     } finally {
@@ -120,7 +128,8 @@ export function AuthPage() {
     try {
       await register(formData.name, formData.email, formData.password);
       showAlert('success', 'Compte créé avec succès !');
-      setTimeout(() => router.push('/dashboard'), 1000);
+      // Immediate redirect after successful registration
+      router.push('/dashboard');
     } catch (error) {
       showAlert('error', error instanceof Error ? error.message : 'Erreur lors de la création du compte');
     } finally {

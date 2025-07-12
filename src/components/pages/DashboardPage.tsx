@@ -10,10 +10,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 
 export function DashboardPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, isStorageLoaded } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
-  const [isLoading, setIsLoading] = useState(true);
 
   const handleLogout = () => {
     logout();
@@ -22,17 +21,14 @@ export function DashboardPage() {
 
   // Handle authentication and redirection in useEffect
   useEffect(() => {
-    // Wait for client-side hydration
-    setIsLoading(false);
-    
-    // Redirect if user is not authenticated
-    if (typeof window !== 'undefined' && !user) {
+    // Only redirect after storage is loaded and we're sure about the auth state
+    if (isStorageLoaded && !user) {
       router.push('/auth');
     }
-  }, [user, router]);
+  }, [user, router, isStorageLoaded]);
 
-  // Show loading during SSR or initial client-side hydration
-  if (isLoading || !user) {
+  // Show loading until storage is loaded or user is confirmed
+  if (!isStorageLoaded || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <div className="text-white">Chargement...</div>
