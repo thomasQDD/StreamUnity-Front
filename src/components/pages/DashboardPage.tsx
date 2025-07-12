@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Header } from '@/components/layout/Header';
@@ -13,20 +13,26 @@ export function DashboardPage() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleLogout = () => {
     logout();
     router.push('/');
   };
 
-  // Client-side redirect for unauthorized users
-  if (typeof window !== 'undefined' && !user) {
-    router.push('/auth');
-    return null;
-  }
+  // Handle authentication and redirection in useEffect
+  useEffect(() => {
+    // Wait for client-side hydration
+    setIsLoading(false);
+    
+    // Redirect if user is not authenticated
+    if (typeof window !== 'undefined' && !user) {
+      router.push('/auth');
+    }
+  }, [user, router]);
 
-  // Show loading or minimal content during SSR
-  if (!user) {
+  // Show loading during SSR or initial client-side hydration
+  if (isLoading || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <div className="text-white">Chargement...</div>
